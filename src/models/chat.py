@@ -17,6 +17,16 @@ class ChatCreate(BaseModel):
     description: str
 
 
+class MessageCreate(BaseModel):
+    chat_id: str
+    message: str
+
+
+class ChatNewUser(BaseModel):
+    chat_id: str
+    email: str
+
+
 class ChatUpdate(ChatCreate):
     chat_id: str
 
@@ -27,6 +37,7 @@ class ChatBase(db_base.Base):
     id = Column(Text, primary_key=True, index=True)
     name = Column(Text,  nullable=False)
     description = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.datetime.now(datetime.timezone.utc))
 
 
 class ChatParticipants(db_base.Base):
@@ -44,3 +55,4 @@ class ChatMessages(db_base.Base):
     chat_id = Column(Text, ForeignKey('chats.id', ondelete='CASCADE'), nullable=False)
     creator_user_id = Column(Integer, nullable=False)
     message = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.datetime.now(datetime.timezone.utc))

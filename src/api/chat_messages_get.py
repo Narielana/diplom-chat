@@ -10,7 +10,7 @@ from src.utils import const
 
 async def handle(
     user_id: int,
-    chat_info: chat_models.ChatCreate,
+    chat_id: str,
     conn: AsyncSession,
 ):
     user = await personal.get_user_info(user_id=user_id)
@@ -21,26 +21,25 @@ async def handle(
         )
 
     query = select(
-        chat_models.ChatBase.id,
-        chat_models.ChatBase.name,
-        chat_models.ChatBase.description
-    ).where(chat_models.ChatParticipants.user_id == user_id).join(
-        chat_models.ChatParticipants,
-        chat_models.ChatParticipants.chat_id == chat_models.ChatBase.id,
-    )
+        chat_models.ChatMessages.message,
+        chat_models.ChatMessages.created_at,
+        chat_models.ChatMessages.creator_user_id,
+        chat_models.ChatMessages.chat_id,
+    ).where(chat_models.ChatMessages.chat_id == chat_id)
 
-    chats = (await conn.exec(query)).fetchall()
+    messages = (await conn.exec(query)).fetchall()
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
             'items': [
                 {
-                    'id': chat.id,
-                    'name': chat.name,
-                    'description': chat.description,
+                    'message': item.message,
+                    'created_at': item.created_at.isoformat(),
+                    'creator_user_id': item.creator_user_id, # TO DO: get user names
+                    'is_author': item.creator_user_id == user_id,
                 }
-                for chat in chats
+                for item in messages
             ]
         }
     )
